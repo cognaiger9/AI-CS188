@@ -90,18 +90,21 @@ def depthFirstSearch(problem: SearchProblem):
     fringe = util.Stack()                                    # contain tuple (state, prev state, action prev state -> state)
     start_state = problem.getStartState()
     fringe.push((start_state, None, None))
-    explored = util.Stack()
-    explored_state = {}
+    explored = util.Stack()                                  # use for conducting move backward
+    explored_state = set()                                   # prevent duplicate state
     move = []
     cur_pack = None
     cur_state = None
+
     while not fringe.isEmpty():
-        print(1)
         cur_pack = fringe.pop()
         cur_state = cur_pack[0]
         if problem.isGoalState(cur_state):
+            move.insert(0, cur_pack[2])
+            cur_state = cur_pack[1]
             break
         else:
+            explored_state.add(cur_state)
             explored.push(cur_pack)
             successors = problem.getSuccessors(cur_state)
             for successor in successors:
@@ -112,7 +115,8 @@ def depthFirstSearch(problem: SearchProblem):
     while not explored.isEmpty():
         explored_pack = explored.pop()
         if explored_pack[0] == cur_state:
-            move.insert(0, explored_pack[2])
+            if explored_pack[2] is not None:
+                move.insert(0, explored_pack[2])
             cur_state = explored_pack[1]
 
     return move
@@ -120,7 +124,39 @@ def depthFirstSearch(problem: SearchProblem):
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    fringe = util.Queue()                                    # contain tuple (state, prev state, action prev state -> state)
+    start_state = problem.getStartState()
+    fringe.push((start_state, None, None))
+    explored = util.Stack()                                  # use for conducting move backward
+    explored_state = set()                                   # prevent duplicate state
+    move = []
+    cur_pack = None
+    cur_state = None
+
+    while not fringe.isEmpty():
+        cur_pack = fringe.pop()
+        cur_state = cur_pack[0]
+        if problem.isGoalState(cur_state):
+            move.insert(0, cur_pack[2])
+            cur_state = cur_pack[1]
+            break
+        else:
+            explored_state.add(cur_state)
+            explored.push(cur_pack)
+            successors = problem.getSuccessors(cur_state)
+            for successor in successors:
+                if successor[0] not in explored_state:
+                    fringe.push((successor[0], cur_state, successor[1]))
+
+    # From goal state construct move backward
+    while not explored.isEmpty():
+        explored_pack = explored.pop()
+        if explored_pack[0] == cur_state:
+            if explored_pack[2] is not None:
+                move.insert(0, explored_pack[2])
+            cur_state = explored_pack[1]
+
+    return move
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
