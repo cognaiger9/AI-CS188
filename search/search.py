@@ -131,39 +131,36 @@ def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     
-    move = []
+    path = []
 
     fringe = util.PriorityQueue()                       # fringe contain tuple (state, prev state, action prev state -> state, cost from start)
     start_state = problem.getStartState()
     fringe.push((start_state, None, None, 0), 0)
-    explored = [] # history about order of discovering
-    explored_state = set() # avoid exploring duplicate state
-    cur_pack = None
+    parent_map = dict() # use to backtrack move (associate parent state with its child state as direction)
+    cur_node = None
     cur_state = None
+
     while not fringe.isEmpty():
-        cur_pack = fringe.pop()
-        if cur_pack[0] in explored_state:
+        cur_node = fringe.pop()
+        cur_state = cur_node[0]
+        if cur_state in parent_map:
             continue
-        explored_state.add(cur_pack[0])
-        cur_state = cur_pack[0]
-        explored.append(cur_pack)
+        parent_map[cur_state] = (cur_node[1], cur_node[2])
         if problem.isGoalState(cur_state):
             break
         else:
             successors = problem.getSuccessors(cur_state)
             for successor in successors:
-                if successor[0] not in explored_state:
-                    fringe.update((successor[0], cur_state, successor[1], successor[2] + cur_pack[3]), successor[2] + cur_pack[3])
+                if successor[0] not in parent_map:
+                    fringe.update((successor[0], cur_state, successor[1], successor[2] + cur_node[3]), successor[2] + cur_node[3])
 
     # From goal state construct move backward
     while cur_state != start_state:
-        for pack in explored:
-            if pack[0] == cur_state:
-                move.insert(0, pack[2])
-                cur_state = pack[1]
-                break
+        item = parent_map[cur_state]
+        path.insert(0, item[1])
+        cur_state = item[0]
 
-    return move
+    return path
 
 def nullHeuristic(state, problem=None):
     """
