@@ -129,7 +129,6 @@ def breadthFirstSearch(problem: SearchProblem):
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
     
     path = []
 
@@ -171,9 +170,37 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
 
+    path = []
+
+    fringe = util.PriorityQueue()                       # fringe contain tuple (state, prev state, action prev state -> state, cost from start)
+    start_state = problem.getStartState()
+    fringe.push((start_state, None, None, 0), 0)
+    parent_map = dict() # use to backtrack move (associate parent state with its child state as direction)
+    cur_node = None
+    cur_state = None
+
+    while not fringe.isEmpty():
+        cur_node = fringe.pop()
+        cur_state = cur_node[0]
+        if cur_state in parent_map:
+            continue
+        parent_map[cur_state] = (cur_node[1], cur_node[2])
+        if problem.isGoalState(cur_state):
+            break
+        else:
+            successors = problem.getSuccessors(cur_state)
+            for successor in successors:
+                if successor[0] not in parent_map:
+                    fringe.update((successor[0], cur_state, successor[1], successor[2] + cur_node[3]), successor[2] + cur_node[3] + heuristic(successor[0], problem))
+
+    # From goal state construct move backward
+    while cur_state != start_state:
+        item = parent_map[cur_state]
+        path.insert(0, item[1])
+        cur_state = item[0]
+
+    return path
 
 # Abbreviations
 bfs = breadthFirstSearch
