@@ -42,7 +42,6 @@ import autograder
 
 VERBOSE = False
 
-
 class MultiagentTreeState(object):
     def __init__(self, problem, state):
         self.problem = problem
