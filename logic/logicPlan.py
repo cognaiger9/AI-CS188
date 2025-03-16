@@ -49,10 +49,14 @@ def sentence1() -> Expr:
     (not A) if and only if ((not B) or C)
     (not A) or (not B) or C
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
-
+    
+    A = Expr('A')
+    B = Expr('B')
+    C = Expr('C')
+    element1 = A | B
+    element2 = ~A % (~B | C)
+    element3 = disjoin(~A, ~B, C)
+    return conjoin(element1, element2, element3)
 
 def sentence2() -> Expr:
     """Returns a Expr instance that encodes that the following expressions are all true.
@@ -62,9 +66,16 @@ def sentence2() -> Expr:
     (not (B and (not C))) implies A
     (not D) implies C
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    
+    A = Expr('A')
+    B = Expr('B')
+    C = Expr('C')
+    D = Expr('D')
+    element1 = C % (B | D)
+    element2 = A >> (~B & ~D)
+    element3 = ~(B & ~C) >> A
+    element4 = ~D >> C
+    return conjoin(element1, element2, element3, element4)
 
 
 def sentence3() -> Expr:
@@ -79,9 +90,13 @@ def sentence3() -> Expr:
 
     Pacman is born at time 0.
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    
+    A = PropSymbolExpr("PacmanAlive", time=0)
+    B = PropSymbolExpr("PacmanAlive", time=1)
+    C = PropSymbolExpr("PacmanBorn", time=0)
+    D = PropSymbolExpr("PacmanKilled", time=0)
+    return conjoin(B % ((A & ~D) | (~A & C)), ~(A & C), C)
+
 
 def findModel(sentence: Expr) -> Dict[Expr, bool]:
     """Given a propositional logic sentence (i.e. a Expr instance), returns a satisfying
@@ -95,10 +110,10 @@ def findModelUnderstandingCheck() -> Dict[Expr, bool]:
     You should not use findModel or Expr in this method.
     """
     a = Expr('A')
-    "*** BEGIN YOUR CODE HERE ***"
     print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    cnf_sentence = to_cnf(a)
+    return pycoSAT(cnf_sentence)
+    
 
 def entails(premise: Expr, conclusion: Expr) -> bool:
     """Returns True if the premise entails the conclusion and False otherwise.
