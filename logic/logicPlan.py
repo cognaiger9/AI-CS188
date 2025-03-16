@@ -110,25 +110,43 @@ def findModelUnderstandingCheck() -> Dict[Expr, bool]:
     You should not use findModel or Expr in this method.
     """
     a = Expr('A')
-    print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
+    #print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
+    a.__dict__['op'] = 'a'
+
     cnf_sentence = to_cnf(a)
-    return pycoSAT(cnf_sentence)
+    clauses = logic.conjuncts(cnf_sentence)
+    symbol_dict = {a: 1, 1: a}
+    clauses_int = logic.exprClausesToIndexClauses(clauses, symbol_dict)
+    model_int = logic.pycosat.solve(clauses_int)
+    
+    if model_int == 'UNSAT' or model_int == 'UNKNOWN':
+        return False
+    
+    model = logic.indexModelToExprModel(model_int, symbol_dict)
+    
+    return model
     
 
 def entails(premise: Expr, conclusion: Expr) -> bool:
     """Returns True if the premise entails the conclusion and False otherwise.
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+
+    symbols = logic.prop_symbols(premise)
+
+    for combination in itertools.product([True, False], repeat=len(symbols)):
+        assignment = dict(zip(symbols, combination))
+        if logic.pl_true(premise, assignment) == True:
+            if logic.pl_true(conclusion, assignment) == False:
+                return False
+
+    return True
 
 def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> bool:
     """Returns True if the (not inverse_statement) is True given assignments and False otherwise.
     pl_true may be useful here; see logic.py for its description.
     """
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    
+    return not logic.pl_true(inverse_statement, assignments)
 
 #______________________________________________________________________________
 # QUESTION 2
