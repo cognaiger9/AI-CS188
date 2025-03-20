@@ -230,7 +230,9 @@ def pacmanSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[
     if not possible_causes:
         return None
     
-    return exactlyOne(possible_causes)
+    #moved_causes_sent = conjoin(~PropSymbolExpr(pacman_str, x, y, time=last), ~PropSymbolExpr(wall_str, x, y), disjoin(possible_causes))
+    #return PropSymbolExpr(pacman_str, x, y, time=now) % moved_causes_sent
+    return PropSymbolExpr(pacman_str, x, y, time=now) % disjoin(possible_causes)
 
 
 def SLAMSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[bool]]) -> Expr:
@@ -299,9 +301,28 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
     """
     pacphysics_sentences = []
 
-    "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    for coord in all_coords:
+        x, y = coord
+        wall_xy = PropSymbolExpr(wall_str, x, y)
+        pac_xy = PropSymbolExpr(pacman_str, x, y, time=t)
+        pacphysics_sentences.append(wall_xy >> ~pac_xy)
+
+    tmp_list = []
+    for non_wall_coord in non_outer_wall_coords:
+        x, y = non_wall_coord
+        tmp_list.append(PropSymbolExpr(pacman_str, x, y, time=t))
+    pacphysics_sentences.append(exactlyOne(tmp_list))
+
+    tmp_list1 = []
+    for dir in DIRECTIONS:
+        tmp_list1.append(PropSymbolExpr(dir, time=t))
+    pacphysics_sentences.append(exactlyOne(tmp_list1))
+
+    if sensorAxioms is not None:
+        pacphysics_sentences.append(sensorAxioms(t, non_outer_wall_coords))
+
+    if t > 0 and successorAxioms is not None:
+        pacphysics_sentences.append(successorAxioms(t, walls_grid, non_outer_wall_coords))
 
     return conjoin(pacphysics_sentences)
 
@@ -334,8 +355,22 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
     KB.append(conjoin(map_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    KB.append(pacphysicsAxioms(1, all_coords, non_outer_wall_coords, walls_grid, allLegalSuccessorAxioms))
+    KB.append(PropSymbolExpr(pacman_str, x0, y0, time=0))
+    KB.append(PropSymbolExpr(action0, time=0))
+    KB.append(PropSymbolExpr(action1, time=1))
+
+    pac_x1y1 = PropSymbolExpr(pacman_str, x1, y1, time=1)
+    KB.append(pac_x1y1)
+    sentence1 = conjoin(KB)
+    model1 = findModel(sentence1)
+
+    KB.pop()
+    KB.append(~pac_x1y1)
+    sentence2 = conjoin(KB)
+    model2 = findModel(sentence2)
+
+    return model1, model2
 
 #______________________________________________________________________________
 # QUESTION 4
