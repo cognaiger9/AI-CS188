@@ -318,8 +318,8 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
         tmp_list1.append(PropSymbolExpr(dir, time=t))
     pacphysics_sentences.append(exactlyOne(tmp_list1))
 
-    if sensorAxioms is not None:
-        pacphysics_sentences.append(sensorAxioms(t, non_outer_wall_coords))
+    if sensorModel is not None:
+        pacphysics_sentences.append(sensorModel(t, non_outer_wall_coords))
 
     if t > 0 and successorAxioms is not None:
         pacphysics_sentences.append(successorAxioms(t, walls_grid, non_outer_wall_coords))
@@ -355,7 +355,8 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
     KB.append(conjoin(map_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    KB.append(pacphysicsAxioms(1, all_coords, non_outer_wall_coords, walls_grid, allLegalSuccessorAxioms))
+    KB.append(pacphysicsAxioms(0, all_coords, non_outer_wall_coords, walls_grid, None, allLegalSuccessorAxioms))
+    KB.append(pacphysicsAxioms(1, all_coords, non_outer_wall_coords, walls_grid, None, allLegalSuccessorAxioms))
     KB.append(PropSymbolExpr(pacman_str, x0, y0, time=0))
     KB.append(PropSymbolExpr(action0, time=0))
     KB.append(PropSymbolExpr(action1, time=1))
@@ -396,8 +397,32 @@ def positionLogicPlan(problem) -> List:
     KB = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    KB.append(PropSymbolExpr(pacman_str, x0, y0, time=0))
+    for t in range(50):
+        print(f"Time = {t}")
+        pos_list = []
+        for coord in non_wall_coords:
+            x, y = coord
+            pos_list.append(PropSymbolExpr(pacman_str, x, y, time=t))
+        KB.append(exactlyOne(pos_list))
+
+        goal_assrt = PropSymbolExpr(pacman_str, xg, yg, time=t)
+        model = findModel(conjoin(KB) & goal_assrt)
+        if model is not False:
+            return extractActionSequence(model, actions)
+        
+        action_list = []
+        for action in actions:
+            action_list.append(PropSymbolExpr(action, time=t))
+        KB.append(exactlyOne(action_list))
+
+        for non_wall_coor in non_wall_coords:
+            x, y = non_wall_coor
+            KB.append(pacmanSuccessorAxiomSingle(x, y, t + 1, walls_grid))
+
+    model = findModel(conjoin(KB))
+    return extractActionSequence(model, action)
+
 
 #______________________________________________________________________________
 # QUESTION 5
