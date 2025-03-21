@@ -131,15 +131,19 @@ def entails(premise: Expr, conclusion: Expr) -> bool:
     """Returns True if the premise entails the conclusion and False otherwise.
     """
 
-    symbols = logic.prop_symbols(premise)
+    #symbols = logic.prop_symbols(premise)
+#
+    #for combination in itertools.product([True, False], repeat=len(symbols)):
+    #    assignment = dict(zip(symbols, combination))
+    #    if logic.pl_true(premise, assignment) == True:
+    #        if logic.pl_true(conclusion, assignment) == False:
+    #            return False
 
-    for combination in itertools.product([True, False], repeat=len(symbols)):
-        assignment = dict(zip(symbols, combination))
-        if logic.pl_true(premise, assignment) == True:
-            if logic.pl_true(conclusion, assignment) == False:
-                return False
+    # equivalent A ^ ~B unsatisable
+    exp = premise & ~conclusion
+    model = findModel(exp)
 
-    return True
+    return model == False
 
 def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> bool:
     """Returns True if the (not inverse_statement) is True given assignments and False otherwise.
@@ -504,9 +508,30 @@ def localization(problem, agent) -> Generator:
     KB = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    for coord in all_coords:
+        x, y = coord
+        if coord in walls_list:
+            KB.append(PropSymbolExpr(wall_str, x, y))
+        else:
+            KB.append(~PropSymbolExpr(wall_str, x, y))
 
     for t in range(agent.num_timesteps):
+        print(f"Time = {t}")
+        KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords, walls_grid, sensorAxioms, allLegalSuccessorAxioms))
+        KB.append(PropSymbolExpr(agent.actions[t], time=t))
+        percept_rules = fourBitPerceptRules(t, agent.getPercepts())
+        KB.append(percept_rules)
+        possible_locations = []
+        for coord in non_outer_wall_coords:
+            x, y = coord
+            if entails(conjoin(KB), PropSymbolExpr(pacman_str, x, y, time=t)) == True:
+                KB.append(PropSymbolExpr(pacman_str, x, y, time=t))
+            if entails(conjoin(KB), ~PropSymbolExpr(pacman_str, x, y, time=t)) == False:
+                possible_locations.append(coord)
+            else:
+                KB.append(~PropSymbolExpr(pacman_str, x, y, time=t))
+
+        agent.moveToNextState(agent.actions[t])
         "*** END YOUR CODE HERE ***"
         yield possible_locations
 
