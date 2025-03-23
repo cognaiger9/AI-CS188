@@ -93,7 +93,7 @@ def joinFactors(factors: List[Factor]):
     if len(factors) > 1:
         intersect = functools.reduce(lambda x, y: x & y, setsOfUnconditioned)
         if len(intersect) > 0:
-            print("Factor failed joinFactors typecheck: ", factor)
+            print("Factor failed joinFactors typecheck: ", factors)
             raise ValueError("unconditionedVariables can only appear in one factor. \n"
                     + "unconditionedVariables: " + str(intersect) + 
                     "\nappear in more than one input factor.\n" + 
@@ -102,8 +102,34 @@ def joinFactors(factors: List[Factor]):
 
 
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    unconditionedVar = set()
+    for uncond in setsOfUnconditioned:
+        for var in uncond:
+            unconditionedVar.add(var)
+    unconditionedVar = list(unconditionedVar)
+
+    conditionedVar = set()
+    setOfConditioned = [factor.conditionedVariables() for factor in factors]
+    for cond in setOfConditioned:
+        for var in cond:
+            if var not in unconditionedVar:
+                conditionedVar.add(var)
+    conditionedVar = list(conditionedVar)    
+
+    domainDict = list(factors)[0].variableDomainsDict()
+    res = Factor(unconditionedVar, conditionedVar, domainDict)
+
+    # calculate entry
+    allPossibleAssignment = res.getAllPossibleAssignmentDicts()
+    for assignment in allPossibleAssignment:
+        prob = 1
+        for factor in factors:
+            prob_factor = factor.getProbability(assignment)
+            prob *= prob_factor
+
+        res.setProbability(assignment, prob)
+
+    return res
 
 ########### ########### ###########
 ########### QUESTION 3  ###########
@@ -153,8 +179,22 @@ def eliminateWithCallTracking(callTrackingList=None):
                     "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
-        "*** END YOUR CODE HERE ***"
+        unconditionedvariables = factor.unconditionedVariables()
+        unconditionedvariables.discard(eliminationVariable)
+        oldDomainDict = factor.variableDomainsDict()
+        domainDict = {k: v for k, v in oldDomainDict.items() if k != eliminationVariable}
+        res = Factor(unconditionedvariables, factor.conditionedVariables(), domainDict)
+
+        allPossibleAssignment = res.getAllPossibleAssignmentDicts()
+        for assignment in allPossibleAssignment:
+            prob = 0
+            domains = oldDomainDict[eliminationVariable]
+            for val in domains:
+                assignment[eliminationVariable] = val
+                prob += factor.getProbability(assignment)
+            res.setProbability(assignment, prob)
+
+        return res
 
     return eliminate
 
