@@ -100,8 +100,6 @@ def joinFactors(factors: List[Factor]):
                     "Input factors: \n" +
                     "\n".join(map(str, factors)))
 
-
-    "*** YOUR CODE HERE ***"
     unconditionedVar = set()
     for uncond in setsOfUnconditioned:
         for var in uncond:
@@ -181,14 +179,12 @@ def eliminateWithCallTracking(callTrackingList=None):
         "*** YOUR CODE HERE ***"
         unconditionedvariables = factor.unconditionedVariables()
         unconditionedvariables.discard(eliminationVariable)
-        oldDomainDict = factor.variableDomainsDict()
-        domainDict = {k: v for k, v in oldDomainDict.items() if k != eliminationVariable}
-        res = Factor(unconditionedvariables, factor.conditionedVariables(), domainDict)
+        res = Factor(unconditionedvariables, factor.conditionedVariables(), factor.variableDomainsDict())
 
         allPossibleAssignment = res.getAllPossibleAssignmentDicts()
         for assignment in allPossibleAssignment:
             prob = 0
-            domains = oldDomainDict[eliminationVariable]
+            domains = factor.variableDomainsDict()[eliminationVariable]
             for val in domains:
                 assignment[eliminationVariable] = val
                 prob += factor.getProbability(assignment)
