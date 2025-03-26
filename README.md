@@ -8,7 +8,7 @@ The project consists of multiple parts, each addressing a specific aspect of AI:
 
 1. **Search (Project 1)**: Implement search algorithms (DFS, BFS, UCS, A*) to find optimal paths in the Pacman world.
 2. **Multi-Agent (Project 2)**: Develop adversarial agents using minimax, alpha-beta pruning, and expectimax.
-3. **Reinforcement Learning (Project 3)**: Implement Q-learning and approximate Q-learning to train Pacman through experience.
+3. **Logic (Project 3)**: 
 4. **Bayes Nets (Project 4)**: Apply probabilistic inference to track ghosts using hidden Markov models.
 5. **Machine Learning (Project 5)**: Use perceptron and neural networks to classify digits.
 
